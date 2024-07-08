@@ -2,3 +2,4 @@ streamlit
 pdfkit
 requests
 pyppeteer
+nest_asyncio
