@@ -2,10 +2,14 @@ import streamlit as st
 import requests
 from pyppeteer import launch
 import asyncio
+import nest_asyncio
+
+# Apply the nest_asyncio patch
+nest_asyncio.apply()
 
 # Function to generate PDF using pyppeteer
 async def generate_pdf(url, output_path):
-    browser = await launch()
+    browser = await launch(headless=True)
     page = await browser.newPage()
     await page.goto(url, {'waitUntil': 'networkidle0'})
     await page.pdf({'path': output_path, 'format': 'A4'})
@@ -32,7 +36,8 @@ if st.button('Generate PDF'):
     pdf_output = f'Sefaria_Psalms_{number}.pdf'
     
     # Run the async function to generate PDF
-    asyncio.get_event_loop().run_until_complete(generate_pdf(link, pdf_output))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(generate_pdf(link, pdf_output))
 
     # Provide a link to download the PDF
     with open(pdf_output, 'rb') as pdf_file:
