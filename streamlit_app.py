@@ -1,6 +1,7 @@
 import streamlit as st
 import pdfkit
 import requests
+import os
 
 # Title of the app
 st.title('Sefaria Psalms Link Generator and PDF Creator')
@@ -35,3 +36,7 @@ if st.button('Generate PDF'):
     # Provide a link to download the PDF
     with open(pdf_output, 'rb') as pdf_file:
         st.download_button('Download PDF', pdf_file, file_name=pdf_output)
+
+    # Clean up temporary files
+    os.remove('temp.html')
+    os.remove(pdf_output)
