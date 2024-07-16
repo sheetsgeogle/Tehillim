@@ -1,14 +1,19 @@
 import streamlit as st
+from transformers import pipeline
 
-# Predefined dictionary simulating sources
-sources = {
-    'Shabbat': 'Shulchan Aruch, Orach Chayim 242:1',
-    'Kashrut': 'Yoreh De\'ah 87:1',
-    'Tefillin': 'Shulchan Aruch, Orach Chayim 25:1',
-    'Lashon Hara': 'Chofetz Chaim, Introduction:1',
-    'Bracha Rishona': 'Shulchan Aruch, Orach Chayim 206:1',
-    'Bracha Acharona': 'Shulchan Aruch, Orach Chayim 208:1'
-}
+# Load a pre-trained model and tokenizer
+model_name = "distilbert-base-uncased-distilled-squad"
+nlp = pipeline("question-answering", model=model_name)
+
+# Predefined context simulating Torah sources
+context = """
+Shabbat: Shulchan Aruch, Orach Chayim 242:1.
+Kashrut: Yoreh De'ah 87:1.
+Tefillin: Shulchan Aruch, Orach Chayim 25:1.
+Lashon Hara: Chofetz Chaim, Introduction:1.
+Bracha Rishona: Shulchan Aruch, Orach Chayim 206:1.
+Bracha Acharona: Shulchan Aruch, Orach Chayim 208:1.
+"""
 
 def main():
     st.title("Torah Sources Finder")
@@ -16,11 +21,11 @@ def main():
 
     query = st.text_input("Enter your query:")
     if st.button("Find Source"):
-        source = sources.get(query)
-        if source:
-            st.success(f"Source: {source}")
+        if query:
+            result = nlp(question=query, context=context)
+            st.success(f"Source: {result['answer']}")
         else:
-            st.error("Source not found. Please try another query.")
+            st.error("Please enter a query.")
 
 if __name__ == "__main__":
     main()
