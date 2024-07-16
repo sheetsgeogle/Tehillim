@@ -1,7 +1,7 @@
 import streamlit as st
 from transformers import pipeline
 
-# Load a pre-trained model and tokenizer
+# Load a pre-trained question-answering model
 model_name = "distilbert-base-uncased-distilled-squad"
 nlp = pipeline("question-answering", model=model_name)
 
