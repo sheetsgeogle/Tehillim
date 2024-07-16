@@ -1,44 +1,33 @@
 import streamlit as st
-import requests
-from pyppeteer import launch
-import asyncio
-import nest_asyncio
+import time
+from datetime import datetime
 
-# Apply the nest_asyncio patch
-nest_asyncio.apply()
+# Function to display the current time
+def display_time():
+    current_time = datetime.now().strftime("%H:%M:%S")
+    return current_time
 
-# Function to generate PDF using pyppeteer
-async def generate_pdf(url, output_path):
-    browser = await launch(headless=True)
-    page = await browser.newPage()
-    await page.goto(url, {'waitUntil': 'networkidle0'})
-    await page.pdf({'path': output_path, 'format': 'A4'})
-    await browser.close()
-
-# Title of the app
-st.title('Sefaria Psalms Link Generator and PDF Creator')
-
-# Prompt the user to enter a number
-number = st.number_input('Enter a Psalm number:', min_value=1, max_value=150, step=1)
-
-# Generate the link
-link = f'https://www.sefaria.org/Psalms.{number}?lang=he'
-
-# Display the link
-st.write('Generated Link:')
-st.write(link)
-
-# Provide a clickable link
-st.markdown(f'[Click here to view Psalm {number}]({link})')
-
-# Button to create the PDF
-if st.button('Generate PDF'):
-    pdf_output = f'Sefaria_Psalms_{number}.pdf'
+# Main function to run the Streamlit app
+def main():
+    st.title("Alarm Clock")
     
-    # Run the async function to generate PDF
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(generate_pdf(link, pdf_output))
-
-    # Provide a link to download the PDF
-    with open(pdf_output, 'rb') as pdf_file:
-        st.download_button('Download PDF', pdf_file, file_name=pdf_output)
+    # User inputs for font size and color
+    font_size = st.sidebar.slider("Font Size", 10, 100, 50)
+    font_color = st.sidebar.color_picker("Font Color", "#FFFFFF")
+    
+    # User input for setting an alarm
+    alarm_time = st.sidebar.text_input("Set Alarm (HH:MM:SS)", "00:00:00")
+    
+    # Display the current time with custom font size and color
+    current_time = display_time()
+    st.markdown(f"<h1 style='text-align: center; color: {font_color}; font-size: {font_size}px;'>{current_time}</h1>", unsafe_allow_html=True)
+    
+    # Check if the current time matches the alarm time
+    if current_time == alarm_time:
+        st.warning("⏰ It's time!")
+    
+    # Refresh the page every second to update the time
+    st.experimental_rerun()
+    
+if __name__ == "__main__":
+    main()
