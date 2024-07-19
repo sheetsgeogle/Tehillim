@@ -18,7 +18,8 @@ def clean_html(text):
 def display_words(text):
     for chapter in text:
         for verse in chapter:
-            words = verse.split()  # Split the verse into words
+            cleaned_verse = clean_html(verse)
+            words = cleaned_verse.split()  # Split the verse into words
             for word in words:
                 st.write(word)
 
@@ -32,8 +33,7 @@ def main():
     
     if text:
         st.write("Displaying words:")
-        cleaned_text = [clean_html(verse) for chapter in text for verse in chapter]
-        display_words(cleaned_text)
+        display_words(text)
 
 if __name__ == "__main__":
     main()
