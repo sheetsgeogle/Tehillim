@@ -1,28 +1,33 @@
 import streamlit as st
-from transformers import pipeline
+import requests
 
-# Load a pre-trained question-answering model
-nlp = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
+def get_text_from_sefaria(parsha):
+    url = f"https://www.sefaria.org/api/texts/{parsha}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()['text']
+    else:
+        st.error(f"Error fetching data from Sefaria: {response.status_code}")
+        return None
+
+def display_words(text):
+    for chapter in text:
+        for verse in chapter:
+            words = verse.split()
+            for word in words:
+                st.write(word)
 
 def main():
-    st.title("Torah Sources Finder")
-    st.write("Enter any topic, subject, halacha, or posek to find its source.")
-
-    query = st.text_input("Enter your query:")
-    context = st.text_area("Provide context (optional):", height=200)
-
-    if st.button("Find Source"):
-        if query:
-            if not context:
-                st.error("Please provide some context to search within.")
-            else:
-                result = nlp(question=query, context=context)
-                if result and result['score'] > 0.1:
-                    st.success(f"Source: {result['answer']}")
-                else:
-                    st.error("Source not found. Please try another query.")
-        else:
-            st.error("Please enter a query.")
+    st.title("Parshas Noach Word Display")
+    
+    parsha = "Genesis.6.9-11.32"  # The range of verses for Parshas Noach
+    
+    st.write("Fetching text from Sefaria...")
+    text = get_text_from_sefaria(parsha)
+    
+    if text:
+        st.write("Displaying words:")
+        display_words(text)
 
 if __name__ == "__main__":
     main()
