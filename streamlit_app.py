@@ -25,7 +25,7 @@ def remove_trope_and_punctuation(text):
 
 def export_words_to_csv(text):
     output = io.StringIO()
-    writer = csv.writer(output)
+    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
     writer.writerow(['Word'])  # Write header
     for chapter in text:
         for verse in chapter:
