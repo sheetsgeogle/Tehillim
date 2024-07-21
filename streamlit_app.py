@@ -9,7 +9,7 @@ def get_hebrew_text_from_sefaria(parsha):
     url = f"https://www.sefaria.org/api/texts/{parsha}?context=0&lang=he"
     response = requests.get(url)
     if response.status_code == 200:
-        # Ensure the response content is decoded properly
+        # Decode the response text to ensure proper handling
         return response.json()['he']
     else:
         st.error(f"Error fetching data from Sefaria: {response.status_code}")
