@@ -9,7 +9,6 @@ def get_hebrew_text_from_sefaria(parsha):
     url = f"https://www.sefaria.org/api/texts/{parsha}?context=0&lang=he"
     response = requests.get(url)
     if response.status_code == 200:
-        # Decode the response text to ensure proper handling
         return response.json()['he']
     else:
         st.error(f"Error fetching data from Sefaria: {response.status_code}")
@@ -21,7 +20,7 @@ def clean_html(text):
 
 def remove_trope_and_punctuation(text):
     # Trop (cantillation marks) Unicode range: U+0591 to U+05AF
-    # Remove cantillation marks and colon
+    # Remove cantillation marks and colons
     return re.sub(r'[\u0591-\u05AF:]', '', text)
 
 def export_words_to_csv(text):
@@ -37,7 +36,7 @@ def export_words_to_csv(text):
                 if word:  # Check if the word is not empty
                     writer.writerow([word])
     output.seek(0)
-    return output.getvalue()
+    return output.getvalue().encode('utf-8')  # Ensure UTF-8 encoding
 
 def main():
     st.title("Parshas Noach Word Display and Export")
@@ -49,7 +48,16 @@ def main():
         text = get_hebrew_text_from_sefaria(parsha)
         
         if text:
-            st.write("Exporting words to CSV...")
+            st.write("Displaying raw Hebrew text for debugging:")
+            st.write(text)  # Display raw text for debugging
+            
+            # Check for gibberish in the fetched text
+            gibberish = any(re.search(r'[^\u0590-\u05FF\s]', verse) for chapter in text for verse in chapter)
+            if gibberish:
+                st.error("Gibberish detected in the fetched text!")
+                return
+            
+            st.write("Processing and exporting words to CSV...")
             csv_data = export_words_to_csv(text)
             
             st.download_button(
