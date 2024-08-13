@@ -29,18 +29,14 @@ def get_pdf_urls(start_date):
     return pdf_urls
 
 def main():
-    st.title('Daily PDF Downloader and Combiner')
+    st.title('PDF Downloader and Combiner')
     
     start_date = datetime(2024, 8, 13)
     today = datetime.now().date()
     days_since_start = (today - start_date.date()).days
     date_of_interest = start_date + timedelta(days=days_since_start)
     
-    st.write(f"Downloading PDFs for date: {date_of_interest.strftime('%Y-%m-%d')}")
-    
     pdf_urls = get_pdf_urls(date_of_interest)
-    st.write("PDF URLs:", pdf_urls)
-    
     pdfs = [download_pdf(url) for url in pdf_urls]
     combined_pdf = combine_pdfs(pdfs)
     
