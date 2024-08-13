@@ -1,72 +1,55 @@
 import streamlit as st
 import requests
-from bs4 import BeautifulSoup
-import re
-import csv
+from PyPDF2 import PdfReader, PdfWriter
+from datetime import datetime, timedelta
 import io
 
-def get_hebrew_text_from_sefaria(parsha):
-    url = f"https://www.sefaria.org/api/texts/{parsha}?context=0&lang=he"
+def download_pdf(url):
     response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()['he']
-    else:
-        st.error(f"Error fetching data from Sefaria: {response.status_code}")
-        return None
+    response.raise_for_status()
+    return io.BytesIO(response.content)
 
-def clean_html(text):
-    soup = BeautifulSoup(text, "html.parser")
-    return soup.get_text()
+def combine_pdfs(pdfs):
+    pdf_writer = PdfWriter()
+    for pdf in pdfs:
+        pdf_reader = PdfReader(pdf)
+        for page_num in range(len(pdf_reader.pages)):
+            pdf_writer.add_page(pdf_reader.pages[page_num])
+    combined_pdf = io.BytesIO()
+    pdf_writer.write(combined_pdf)
+    combined_pdf.seek(0)
+    return combined_pdf
 
-def remove_trope_and_punctuation(text):
-    # Trop (cantillation marks) Unicode range: U+0591 to U+05AF
-    # Remove cantillation marks and colons
-    return re.sub(r'[\u0591-\u05AF:]', '', text)
-
-def export_words_to_csv(text):
-    output = io.StringIO()
-    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(['Word'])  # Write header
-    for chapter in text:
-        for verse in chapter:
-            cleaned_verse = clean_html(verse)
-            verse_without_trope = remove_trope_and_punctuation(cleaned_verse)
-            words = verse_without_trope.split()  # Split the verse into words
-            for word in words:
-                if word:  # Check if the word is not empty
-                    writer.writerow([word])
-    output.seek(0)
-    return output.getvalue().encode('utf-8')  # Ensure UTF-8 encoding
+def get_pdf_urls(start_date):
+    pdf_urls = []
+    for i in range(2):
+        pdf_number = (start_date - datetime(2024, 8, 13)).days * 2 + i + 3356
+        url = f"https://daf-yomi.com/Data/UploadedFiles/DY_Page/{pdf_number}.pdf"
+        pdf_urls.append(url)
+    return pdf_urls
 
 def main():
-    st.title("Parshas Noach Word Display and Export")
-
-    parsha = "Genesis.6.9-11.32"  # The range of verses for Parshas Noach
+    st.title('Daily PDF Downloader and Combiner')
     
-    if st.button('Fetch and Export Words'):
-        st.write("Fetching text from Sefaria...")
-        text = get_hebrew_text_from_sefaria(parsha)
-        
-        if text:
-            st.write("Displaying raw Hebrew text for debugging:")
-            st.write(text)  # Display raw text for debugging
-            
-            # Check for gibberish in the fetched text
-            gibberish = any(re.search(r'[^\u0590-\u05FF\s]', verse) for chapter in text for verse in chapter)
-            if gibberish:
-                st.error("Gibberish detected in the fetched text!")
-                return
-            
-            st.write("Processing and exporting words to CSV...")
-            csv_data = export_words_to_csv(text)
-            
-            st.download_button(
-                label="Download CSV",
-                data=csv_data,
-                file_name='parshas_noach.csv',
-                mime='text/csv'
-            )
-            st.success("Export completed.")
+    start_date = datetime(2024, 8, 13)
+    today = datetime.now().date()
+    days_since_start = (today - start_date.date()).days
+    date_of_interest = start_date + timedelta(days=days_since_start)
+    
+    st.write(f"Downloading PDFs for date: {date_of_interest.strftime('%Y-%m-%d')}")
+    
+    pdf_urls = get_pdf_urls(date_of_interest)
+    st.write("PDF URLs:", pdf_urls)
+    
+    pdfs = [download_pdf(url) for url in pdf_urls]
+    combined_pdf = combine_pdfs(pdfs)
+    
+    st.download_button(
+        label="Download Combined PDF",
+        data=combined_pdf,
+        file_name=f"combined_{date_of_interest.strftime('%Y-%m-%d')}.pdf",
+        mime="application/pdf"
+    )
 
 if __name__ == "__main__":
     main()
