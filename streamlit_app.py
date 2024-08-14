@@ -41,7 +41,7 @@ def main():
     combined_pdf = combine_pdfs(pdfs)
     
     st.download_button(
-        label="Download todays Daf Yomi PDF",
+        label="Download today's Daf Yomi PDF",
         data=combined_pdf,
         file_name=f"combined_{date_of_interest.strftime('%Y-%m-%d')}.pdf",
         mime="application/pdf"
