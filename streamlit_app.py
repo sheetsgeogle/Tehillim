@@ -29,7 +29,7 @@ def get_pdf_urls(start_date):
     return pdf_urls
 
 def main():
-    st.title('PDF Downloader and Combiner')
+    st.title('Daf Yomi Downloader')
     
     start_date = datetime(2024, 8, 13)
     today = datetime.now().date()
@@ -41,7 +41,7 @@ def main():
     combined_pdf = combine_pdfs(pdfs)
     
     st.download_button(
-        label="Download Combined PDF",
+        label="Download todays Daf Yomi PDF",
         data=combined_pdf,
         file_name=f"combined_{date_of_interest.strftime('%Y-%m-%d')}.pdf",
         mime="application/pdf"
